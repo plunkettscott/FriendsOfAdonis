@@ -4,14 +4,17 @@ import { RouteJSON } from '@adonisjs/core/types/http'
 import { OperationMetadataStorage } from 'openapi-metadata/metadata'
 import { isConstructor } from './utils.js'
 import stringHelpers from '@adonisjs/core/helpers/string'
+import { OpenAPIDefaults } from './types.js'
 
 export class RouterLoader {
   #router: HttpRouterService
   #logger: Logger
+  #defaultBehavior: OpenAPIDefaults
 
-  constructor(router: HttpRouterService, logger: Logger) {
+  constructor(router: HttpRouterService, logger: Logger, defaultBehavior: OpenAPIDefaults) {
     this.#router = router
     this.#logger = logger
+    this.#defaultBehavior = defaultBehavior
   }
 
   async importRouterController(route: RouteJSON): Promise<[Function, string] | undefined> {
@@ -44,16 +47,17 @@ export class RouterLoader {
     const [target, propertyKey] = reference
 
     const name = stringHelpers.create(target.name).removeSuffix('Controller').toString()
+    const operation = {
+      ...OperationMetadataStorage.getMetadata(target.prototype, propertyKey),
+      path: route.pattern,
+      methods: route.methods.filter((m) => m !== 'HEAD').map((r) => r.toLowerCase()) as any,
+    }
 
-    OperationMetadataStorage.defineMetadata(
-      target.prototype,
-      {
-        path: route.pattern,
-        methods: route.methods.filter((m) => m !== 'HEAD').map((r) => r.toLowerCase()) as any,
-        tags: [name],
-      },
-      propertyKey
-    )
+    if (this.#defaultBehavior.controllerNameAsTag === 'always') {
+      operation.tags = [name]
+    }
+
+    OperationMetadataStorage.defineMetadata(target.prototype, operation, propertyKey)
 
     return target
   }

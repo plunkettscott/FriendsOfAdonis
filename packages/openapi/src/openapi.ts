@@ -26,7 +26,11 @@ export class OpenAPI {
   ) {
     this.#router = router
     this.#logger = logger
-    this.#routerLoader = new RouterLoader(router, logger)
+    this.#routerLoader = new RouterLoader(
+      router,
+      logger,
+      config.defaults ?? { controllerNameAsTag: 'always' }
+    )
     this.#isProduction = isProduction
     this.#config = config
   }

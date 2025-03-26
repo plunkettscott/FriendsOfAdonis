@@ -26,4 +26,22 @@ export type OpenAPIConfig = {
    * @see https://openapi-ts.pages.dev/openapi-metadata/type-loader
    */
   loaders?: GenerateDocumentParameters['loaders']
+
+  /**
+   * Customize the default OpenAPI behavior.
+   */
+  defaults?: OpenAPIDefaults
+}
+
+export type OpenAPIDefaults = {
+  /**
+   * Configures the default tagging behavior for operations discovered in the
+   * AdonisJS controllers.
+   *
+   * - `always`: Always tag the operation with the controller name. This is the default behavior.
+   * - `never`: Never tag the operation with the controller name.
+   *
+   * @default "always"
+   */
+  controllerNameAsTag: 'always' | 'never'
 }
